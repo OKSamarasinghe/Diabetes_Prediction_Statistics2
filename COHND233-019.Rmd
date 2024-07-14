@@ -1,0 +1,165 @@
+---
+title: "Predicting Diabetes Risk with Multiple Linear Regression Analysis"
+author: "Oshadha Kaveen Samarasinghe"
+date: "2024-05-11"
+output: html_document
+---
+```{r}
+
+
+# Add dataset
+data4 <- read.csv(file.choose(), header = TRUE) 
+
+# View the dataset
+View(data4)
+
+# Check the structure of dataset
+str(data4)
+
+# Check for missing values
+missing_values <- colSums(is.na(data4))
+names_with_missing <- names(missing_values[missing_values > 0])
+names_with_missing
+
+# Add libraries
+library(ggplot2)
+library(caTools)
+
+# Plotting The Diagrams 
+plot(data4$platelets, data4$ejection_fraction,
+     main = "Scatter Plot of Platelets & Ejection Fraction",
+     xlab = "Platelets",
+     ylab = "Ejection Fraction",
+     col = "green")
+
+plot(data4$creatinine_phosphokinase, data4$ejection_fraction,
+     main = "Scatter Plot of Creatinine Phosphokinase & Ejection Fraction",
+     xlab = "Creatinine Phosphokinase",
+     ylab = "Ejection Fraction",
+     col = "blue")
+
+plot(data4$serum_sodium, data4$ejection_fraction,
+     main = "Scatter Plot of Serum Sodium & Ejection Fraction",
+     xlab = "Serum Sodium",
+     ylab = "Ejection Fraction",
+     col = "orange")
+
+plot(data4$serum_creatinine, data4$ejection_fraction,
+     main = "Scatter Plot of serum creatinine & Ejection Fraction",
+     xlab = "serum creatinine",
+     ylab = "Ejection Fraction",
+     col = "red")
+
+stripchart(data4$ejection_fraction ~ data4$serum_creatinine, 
+           main = "Dot Chart of serum creatinine & Ejection Fraction",
+           xlab = "serum creatinine",
+           ylab = "Ejection Fraction",
+           col = "red")
+
+ggplot(data4,aes(x = serum_creatinine , y = ejection_fraction)) + geom_point() + labs(x = "serum creatinine" , y = "Ejection Fraction")
+
+
+
+stripchart(data4$ejection_fraction ~ data4$platelets, 
+           method = "jitter",
+           main = "Dot Chart of Ejection Fraction & Platelets",
+           xlab = "Platelets",
+           ylab = "Ejection Fraction",
+           col = "green")
+
+
+
+ggplot(data4,aes(x = ejection_fraction , y = platelets)) + geom_point() + labs(x = "Ejection Fraction" , y = "platelets")
+
+
+
+ggplot(data = data4, aes(x = creatinine_phosphokinase, y = ejection_fraction)) +
+  geom_density_2d(color = "blue") +
+  labs(title = "Density Plot of Creatinine Phosphokinase & Ejection Fraction",
+       x = "Creatinine Phosphokinase",
+       y = "Ejection Fraction")
+
+ggplot(data4,aes(x = creatinine_phosphokinase , y = ejection_fraction)) + geom_point() + labs(x = "creatinine phosphokinase" , y = "ejection fraction")
+
+
+
+
+ggplot(data = data4, aes(x = serum_sodium, y = ejection_fraction)) +
+  geom_boxplot(fill = "orange") +
+  labs(title = "Box Plot of Serum Sodium & Ejection Fraction",
+       x = "Serum Sodium",
+       y = "Ejection Fraction")
+
+ggplot(data4,aes(x = serum_sodium , y = ejection_fraction)) + geom_point() + labs(x = "serum sodium" , y = "ejection fraction")
+
+
+
+
+
+
+#  data splitting part
+set.seed(123)
+split <- sample.split(data4, SplitRatio = 0.8)
+train_data <- subset(data4, split == TRUE)
+test_data <- subset(data4, split == FALSE)
+View(train_data)
+dim(train_data)
+dim(test_data)
+
+# Implement a multiple linear regression model
+attach(data4)
+Multiple_linear_mod <- lm(ejection_fraction ~ platelets + creatinine_phosphokinase + serum_sodium ,data = train_data)
+
+#print model
+print(Multiple_linear_mod)
+
+# model summary
+summary(Multiple_linear_mod)
+
+# Make predictions on the test data using the trained model
+predictions <- predict(Multiple_linear_mod, newdata = test_data)
+
+# Calculate Mean Squared Error (MSE)
+mse <- mean((test_data$ejection_fraction - predictions)^2)
+print(mse)
+
+# Calculate Root Mean Squared Error (RMSE)
+rmse <- sqrt(mse)
+print(rmse)
+
+# Calculate R-Squared
+r_squared <- summary(Multiple_linear_mod)$r.squared
+print(r_squared)
+
+# Print MSE , RMSE . R-SQUARE
+cat("Mean Squared Error (MSE):", mse, "\n")
+cat("Root Mean Squared Error (RMSE):", rmse, "\n")
+cat("R-Squared:", r_squared, "\n")
+
+# Compare the predicted values with the actual values
+comparison <- data.frame(Actual = test_data$ejection_fraction, Predicted = predictions)
+print(comparison)
+summary(comparison)
+
+
+ggplot(comparison, aes(x = Actual, y = Predicted)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "blue") +
+  labs(title = "Actual vs Predicted Ejection Fraction",
+       x = "Actual Ejection Fraction",
+       y = "Predicted Ejection Fraction")
+
+
+# Calculate the differences between actual and predicted values
+comparison$Difference <- comparison$Actual - comparison$Predicted
+
+# Create a histogram of the differences
+hist(comparison$Difference, 
+     main = "Histogram of Differences between Actual and Predicted Ejection Fraction",
+     xlab = "Difference",
+     col = "skyblue", border = "black")
+
+
+
+```
+
